@@ -1,0 +1,30 @@
+数据生成：
+1.训练词向量：TrainWord2vec.py
+--调用GroupDataToWord2vec()生成 词向量训练需要的数据
+--调用word2vec()生成词向量
+
+2.聚类：SparkCluster.py
+--使用pyspark的kmean训练：
+	CreateRawClustData()->SparkKmeans()->merge_data()
+--使用一趟聚类训练:
+	调用OnePassClusters()
+3.人工打标LabelUi.py
+--使用MakeLabel()函数对类打标
+
+模型：
+Classification.py：为gbdt的模型类(若用knn需按功能重写)
+demo_mysql.py：为数据层函数，生产者、消费者调用
+    离线：
+    demo_iteration.py：为gbdt模型的迭代更新函数(若用knn需按功能重写)
+	1.调用upgade_model(...)
+    实时：
+    (一)demo_producer.py：为实时调用，从mysql数据输入。
+	步骤：
+	1.创建生产者类：producer=kafka_producer(...)
+	2.发送数据：producer.send(...)
+    (二)demo_customer.py：读生产者数据，预测标签，写入mysql表
+	步骤：
+	1.创建消费者类：customer=kafka_consumer(...)
+	2.发送数据：customer.consume_data(...)
+
+具体参数见函数

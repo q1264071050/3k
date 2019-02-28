@@ -1,122 +1,57 @@
 import pymysql
 import csv
-class get_data:
+class GetData:
     def __init__(self,limit='',host='192.168.0.231',port=25686,database='kf_message',user='ylmf',password='dgMDbkpGh3t'):
+        '''
+
+        :param limit: 限制条件的列表，输入格式为例如[name=mike,age=15,id=5]转换到mysql语句为=> 'select * from table where 1=1 and name='mike' and age=15 and id=5
+        :param host: mysql所在的ip地址
+        :param port: mysql所在的端口号
+        :param database: 访问mysql的数据库
+        :param user: 访问mysql的用户名
+        :param password: 访问mysql的密码
+        '''
         self.limit=limit
+        #连接数据库
         self.cursor = pymysql.connect(host=host, port=port, database=database,user=user,password=password,use_unicode=False).cursor()
-    def __call__(self,date=20181228, *args, **kwargs):
-        cmd='select * from chat_record_'+str(date)+' where 1=1'
+    def __call__(self,table='chat_record_20181228', *args, **kwargs):
+        '''
+
+        :param table:需要访问的表名
+        :param args:
+        :param kwargs:
+        :return: 返回所有遍历结果，应该是一个列表
+        '''
+
+        #拼接命令
+        cmd='select * from '+table+' where 1=1'
         for i in self.limit:
-            cmd+=' and '+i
-        # cmd+=" limit 10"
-        # print(cmd)
+            i=i.split('=')
+            if i[1].isdigit():
+                cmd += ' and ' + i[0] + '=' + i[1]
+            else:
+                cmd+=' and '+i[0]+'=\''+i[1]+'\''
+
+        #执行语句
         self.cursor.execute(cmd)
-        # cursor.close()
+        #返回遍历结果
         return self.cursor.fetchall()
-    def save(self,data,date):
-        cmd = 'insert into chat_save_'+str(date)+' values('
+
+    def save(self,data,table='chat_save_20181228'):
+        '''
+        :param data: 插入的数据，为一个列表，列必须与插入表中的列一一对应。
+        :param table: 插入的表名
+        :return:
+        '''
+
+        #拼接命令
+        cmd = 'insert into '+table+' values('
         for index,d in enumerate(data):
             if index==0:
                 cmd+="\'"+str(d)+"\'"
             else:
                 cmd+=","+"\'"+str(d)+"\'"
         cmd+=")"
-        # print(cmd)
-        # exit(0)
+
+        #执行语句
         self.cursor.execute(cmd)
-
-def ttt():
-    # x=get_data()
-    # x.save([1,2,3,4,5])
-    x=get_data()
-    # file = open('../data/chat/all_data.csv', 'w',encoding='utf-8')
-    with open('../data/all_data121.csv','w',encoding='utf-8')as w:
-        for i in range(20181215,20181232):
-            for data in x(i):
-                try:
-                    w.write(data[11].decode('utf-8') + "," + str(data[10]) + '\n')
-                except:
-                    continue
-                # exit(0)
-        print('11111')
-    w.close()
-    # with open('../data/all_data02.csv', 'w')as w:
-    #     for i in range(20190201,20190217):
-    #         for data in x(i):
-    #             try:
-    #                 w.write(data[11].decode('utf-8') + "," + str(data[10]) + '\n')
-    #             except:
-    #                 continue
-    #     print('33333')
-    # w.close()
-    exit(0)
-    print('finish.')
-    with open('../data/all_data01.csv','w')as w:
-        for i in range(20190101,20190132):
-            for data in x(i):
-                try:
-                    w.write(data[11].decode('utf-8') + "," + str(data[10]) + '\n')
-                except:
-                    continue
-        print('22222')
-    w.close()
-
-    exit(0)
-def label_data():
-    keywords = set()
-    with open('../data/chat/keywords.txt', 'r', encoding='utf-8')as f:
-        d = f.readline().strip()
-        while d:
-            keywords.add(d)
-            d = f.readline().strip()
-    f.close()
-    # print(len(keywords))
-    # exit(0)
-    x = get_data()
-    with open('../data/all_data121.csv','w',encoding='utf-8')as w:
-        for i in range(20181215,20181232):
-            for data in x(i):
-                try:
-                    s=data[11].decode('utf-8')
-                    for k in keywords:
-                        if k in s:
-                            print(s)
-                            w.write(s + "," + str(data[10]) + '\n')
-                            break
-                except:
-                    continue
-                # exit(0)
-        print('11111')
-    w.close()
-    with open('../data/all_data021.csv', 'w')as w:
-        for i in range(20190201,20190217):
-            for data in x(i):
-                try:
-                    s=data[11].decode('utf-8')
-                    for k in keywords:
-                        if k in s:
-                            print(s)
-                            w.write(s + "," + str(data[10]) + '\n')
-                            break
-                except:
-                    continue
-        print('33333')
-    w.close()
-    # exit(0)
-    print('finish.')
-    with open('../data/all_data011.csv','w')as w:
-        for i in range(20190101,20190132):
-            for data in x(i):
-                try:
-                    s=data[11].decode('utf-8')
-                    for k in keywords:
-                        if k in s:
-                            print(s)
-                            w.write(s + "," + str(data[10]) + '\n')
-                            break
-                except:
-                    continue
-        print('22222')
-    w.close()
-
-label_data()

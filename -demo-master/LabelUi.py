@@ -15,7 +15,7 @@ class FirstWindow(object):
                                  yscrollcommand=self.scrollbar.set)
         self.text.pack()
         self.text2 = tkinter.Text(self.top,
-                                 width=8,
+                                 width=9,
                                  height=1,
                                  font=("Times New Roman", 14))
         self.text2.pack(side=tkinter.LEFT)
@@ -114,4 +114,5 @@ def MakeLabel(dir='/home/second/PycharmProjects/aaa/chat_demo/cluster/'):
 
 
 if __name__ == '__main__':
-    MakeLabel()
+    #输入聚类的文件夹
+    MakeLabel('/home/second/PycharmProjects/aaa/chat_demo/data/2月小于0/')

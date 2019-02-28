@@ -6,6 +6,11 @@ import re
 import multiprocessing
 import numpy as np
 import sys
+
+
+# import nltk
+# nltk.download('punkt')
+# exit(0)
 jieba.add_word("#MARK#")
 jieba.add_word("手机")
 csv.field_size_limit(sys.maxsize)
@@ -13,6 +18,11 @@ csv.field_size_limit(sys.maxsize)
 
 def GroupDataToWord2vec(data_dir='/home/second/PycharmProjects/aaa/data/chat/raw_data.csv',
                         save='/home/second/PycharmProjects/aaa/data/chat/word2vec_train_data.txt'):
+    '''
+    :param data_dir: 聚类数据，每行格式为最原始的数据：句子，类型
+    :param save: 训练词向量的数据保存路径
+    :return:
+    '''
 
     #正则
     partern=re.compile("\\[\\d*?\\]")
@@ -89,8 +99,15 @@ def GroupDataToWord2vec(data_dir='/home/second/PycharmProjects/aaa/data/chat/raw
         print(line)
         w.write(line + '\n')
     w.close()
+
 def word2vec(data_dir='/home/second/PycharmProjects/aaa/data/chat/word2vec_train_data.txt',
              save='/home/second/PycharmProjects/aaa/data/chat/chat_word2vec.txt'):
+    '''
+
+    :param data_dir: 训练词向量的数据保存路径，先调用GroupDataToWord2vec函数生成
+    :param save: 词向量保存路径
+    :return:
+    '''
     #读模型
     # model=gensim.models.word2vec.Word2Vec.load("./model/chat_w2v_2.model")
 
@@ -133,8 +150,7 @@ def word2vec(data_dir='/home/second/PycharmProjects/aaa/data/chat/word2vec_train
 #手写的聚类，用spark代替
 def cos_sim(a,b):
     return 0.5+0.5*(float(np.matmul(a,b))/(np.linalg.norm(a)*np.linalg.norm(b)))
-def clusters(data_dir='/home/second/PycharmProjects/aaa/data/chat/data_cluster2.txt'):
-
+def clusters(data_dir='/home/second/PycharmProjects/aaa/chat_demo/data/jan_label1.txt'):
     vocab={}
     with open('/home/second/PycharmProjects/aaa/data/chat_w2v_190220.txt','r',encoding='utf-8')as f:
         d=f.readline().strip()
@@ -152,18 +168,20 @@ def clusters(data_dir='/home/second/PycharmProjects/aaa/data/chat/data_cluster2.
         d = f.readline().strip()
         while d:
             try:
-                #d = d.split('-*-')
+                # d = d.split('-*-')[1]
                 num += 1
                 words = d.split()
                 sum = np.zeros((100,), dtype=np.float)
                 miss = 0
+                # print(d)
+                # exit(0)
                 for each in words:
                     # print(vocab[each])
                     try:
                         sum += vocab[each]
                     except:
                         miss += 1
-                if np.sum(sum) < 0:
+                if np.sum(sum) != 0:
                     data[d] = sum
                 # print(data)
                 # exit(0)
@@ -175,9 +193,10 @@ def clusters(data_dir='/home/second/PycharmProjects/aaa/data/chat/data_cluster2.
     print(len(data))
     del vocab
     gc.collect()
-    threshold = 0.6
+    threshold = 0.8
     number = 0
     classes = {}
+    total=len(data)
     for num, d in enumerate(data):
         if num == 0:
             classes[number] = [dict(), data[d]]
@@ -196,21 +215,18 @@ def clusters(data_dir='/home/second/PycharmProjects/aaa/data/chat/data_cluster2.
             if c not in classes:
                 classes[number] = [dict(), data[d]]
                 classes[number][0][d] = data[d]
-                print(str(num+1)+'/'+str(len(data)),d, c)
+                print(str(num+1)+'/'+str(total),d, c)
                 number += 1
             else:
+                print(str(num+1)+'/'+str(total),d, c)
+                old_length=len(classes[c][0])
                 classes[c][0][d] = data[d]
-                print(str(num+1)+'/'+str(len(data)),d, c)
-                arg = np.zeros((100,), dtype=np.float)
-                for sent in classes[c][0]:
-                    # print(sent[1][0])
-                    arg += classes[c][0][sent]
-                arg = arg / float(len(classes[c][0]))
+                arg = (classes[c][1]*old_length+data[d])/float(old_length+1)
                 classes[c][1] = arg
     del data
     gc.collect()
     for c in classes:
-        with open("./data/c3/class"+str(c)+".txt",'w',encoding='utf-8')as w:
+        with open("./data/c31/class"+str(c)+".txt",'w',encoding='utf-8')as w:
             for d in classes[c][0]:
                 w.write(d+"\n")
         w.close()
